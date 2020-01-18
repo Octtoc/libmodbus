@@ -16,16 +16,21 @@
 #define MB_MAX_RESPONSE_TIME_MS		1000
 #define MB_SLAVE_ADDRESS			0x01
 
-#define RS485ENABLE_DDR		DDRD
-#define RS485ENABLE_PORT	PORTD
-#define RS485REDE_PIN		PD3
+#define RS485_TX_RX_SWITCH_DDR	DDRD
+#define RS485_TX_RX_SWITCH_PORT	PORTD
+#define RS485_TX_RX_SWITCH_PIN	PD3
+
+#define ADD_TRANSMIT_BYTE_TO_FRAME(X) (u8pTransmitFrame[u8TransmitSizeIndex++] = (X))
+#define ADD_RECEIVE_BYTE_TO_FRAME(X) (u8pReceiveFrame[u8ReceiveSizeIndex++] = (X))
+#define MB_START_TRANSMITTER (RS485_TX_RX_SWITCH_PORT |= (1<<RS485_TX_RX_SWITCH_PIN))
+#define MB_START_RECEIVER (RS485_TX_RX_SWITCH_PORT &= ~(1<<RS485_TX_RX_SWITCH_PIN))
 
 enum {
-	MB_MASTER_TURNAROUND,
-	MB_MASTER_IDLE,
-	MB_MASTER_TX,
-	MB_MASTER_RX,
-	MB_MASTER_WAIT_RESPONSE
+	MB_TURNAROUND,
+	MB_IDLE,
+	MB_TX,
+	MB_RX,
+	MB_WAIT_RESPONSE
 };
 typedef uint8_t MB_STATE;
 
@@ -53,32 +58,29 @@ enum {
 	CANOPEN_GENERAL_REF			= 0x2B
 };
 typedef uint8_t MB_FUNCTION;
-volatile MB_STATE modbus_state;
 
-uint16_t modbus_response_time;
-uint8_t modbus_timer_1_5;
-uint8_t modbus_timer_3_5;
+volatile MB_STATE modbus_state;
+volatile uint16_t modbus_response_time;
+volatile uint8_t modbus_timer_1_5_is_expired;
+volatile uint8_t modbus_timer_3_5_is_expired;
 volatile uint8_t u8TransmitSizeIndex;
 volatile uint8_t u8ReceiveSizeIndex;
 volatile uint8_t u8pReceiveFrame[128];
 volatile uint8_t u8pTransmitFrame[128];
 
 void MB_RTUInit();
-uint16_t MB_CalculateCRC();
 uint8_t MB_RequestHoldingRegisters(uint8_t _u8DeviceAdress, uint16_t _u16StartingAddress, uint16_t _u16QuantityRegister);
-void MB_ResponseHoldingRegisters(uint8_t *_u8fResponse);
-void MB_SendResponse(uint8_t *_u8pData);
-uint8_t MB_SlavePoll();
+void MB_SlavePoll();
 uint8_t MB_MasterPoll();
-uint8_t MB_TimerT35Expired();
-void MB_T35Reset();
-void MB_T35Start();
-uint8_t MB_TimerReset();
 void MB_StartReceiver();
 void MB_StartTransmitter();
 
+void MB_Turnaround();
+void MB_Receive();
+void MB_Transmit();
+
 uint8_t MB_PORT_TRANSMIT_BUFFER_FULL();
-void MB_PORT_Timer_35();
+void MB_PORT_Timer_35_Expired();
 uint8_t MB_PORT_Transmit_Byte(uint8_t u8TrByte);
 void MB_PORT_Receive_Byte(uint8_t _u8RecByte);
 void MB_PORT_Reset_Timer();
