@@ -342,6 +342,8 @@ uint8_t MB_MasterPoll() {
 	}
 	
 	return 0;*/
+	
+	return 0;
 }
 
 void MB_T35Start() {
