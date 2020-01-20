@@ -69,7 +69,7 @@ void MB_Turnaround() {
 
 void MB_Transmit() {
 	if (TransmitFrame.frameIndex < TransmitFrame.frameMaxCounter) {
-		if (MB_PORT_Transmit_Byte(TransmitFrame.frame[TransmitFrame.frameIndex])) {
+		if (MB_PORT_Transmit_Byte(TransmitFrame.frameField[TransmitFrame.frameIndex])) {
 			TransmitFrame.frameIndex++;
 		}
 	} else if (MB_PORT_TRANSMIT_BUFFER_FULL()) {
@@ -85,18 +85,18 @@ void MB_Transmit() {
 
 void MB_Receive() {
 	if (modbus_timer_3_5_is_expired) {
-		MB_STATE currentMB_State = ReceiveFrame.frame[1];
-		uint8_t currentSlaveAddress = ReceiveFrame.frame[0];
+		MB_STATE currentMB_State = ReceiveFrame.frameField[1];
+		uint8_t currentSlaveAddress = ReceiveFrame.frameField[0];
 		uint16_t u16ReceiveFrameSelfCalculatedCRC = 0;
 		uint16_t u16ReceiveFrameCRC = 0;
 
 		modbus_timer_3_5_is_expired = 0;
 
 		//Convert the last 2 CRC Bytes into a 16 Bit value
-		u16ReceiveFrameCRC = (ReceiveFrame.frame[ReceiveFrame.frameMaxCounter] << 8) | ReceiveFrame.frame[ReceiveFrame.frameMaxCounter-1];
+		u16ReceiveFrameCRC = (ReceiveFrame.frameField[ReceiveFrame.frameMaxCounter] << 8) | ReceiveFrame.frameField[ReceiveFrame.frameMaxCounter-1];
 
 		//-2 because the last 2 Bytes are the CRC from the request
-		u16ReceiveFrameSelfCalculatedCRC = usMBCRC16(ReceiveFrame.frame, ReceiveFrame.frameMaxCounter-2);
+		u16ReceiveFrameSelfCalculatedCRC = usMBCRC16(ReceiveFrame.frameField, ReceiveFrame.frameMaxCounter-2);
 
 		//Exception because the calculated and the received CRC value is not the same
 		if (u16ReceiveFrameCRC != u16ReceiveFrameSelfCalculatedCRC) {
@@ -114,14 +114,14 @@ void MB_Receive() {
 
 		switch (currentMB_State) {
 		case READ_HOLDING_REGISTER: {
-			mb_function_holding_register holding_register;
+			mb_holding_register_t holding_register;
 			//MB_FillHoldingRegister(&holding_register, &ReceiveFrame);
 			//MB_AddHoldingRegisterToFrame(&holding_register, &TransmitFrame);
 
 			break;
 		}
 		case READ_COILS: {
-			mb_function_coil coil;
+			mb_coil_t coil;
 			//MB_FillReadCoil(&coil, ReceiveFrame);
 			//MB_AddReadCoilToFrame(&coil, TransmitFrame);
 			break;
@@ -183,8 +183,8 @@ void MB_PORT_Receive_Byte(uint8_t _u8RecByte) {
 		modbus_state = MB_RX;
 	}
 	
-	if(modbus_state == MB_Receive) {
+	if(modbus_state == MB_RX) {
 		modbus_timer_3_5_is_expired = 0;
-		ReceiveFrame.frame[ReceiveFrame.frameMaxCounter++] = _u8RecByte;
+		ReceiveFrame.frameField[ReceiveFrame.frameMaxCounter++] = _u8RecByte;
 	}
 }

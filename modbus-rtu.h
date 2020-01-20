@@ -11,6 +11,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include "modbus.h"
 #include "modbus-crc16.h"
 #include "modbus-functions.h"
 
@@ -21,8 +22,6 @@
 #define RS485_TX_RX_SWITCH_PORT	PORTD
 #define RS485_TX_RX_SWITCH_PIN	PD3
 
-#define ADD_TRANSMIT_BYTE_TO_FRAME(X) (u8pTransmitFrame[u8TransmitSizeIndex++] = (X))
-#define ADD_RECEIVE_BYTE_TO_FRAME(X) (u8pReceiveFrame[u8ReceiveSizeIndex++] = (X))
 #define MB_START_TRANSMITTER (RS485_TX_RX_SWITCH_PORT |= (1<<RS485_TX_RX_SWITCH_PIN))
 #define MB_START_RECEIVER (RS485_TX_RX_SWITCH_PORT &= ~(1<<RS485_TX_RX_SWITCH_PIN))
 
@@ -73,37 +72,31 @@ enum {
 };
 typedef uint8_t MB_EXCEPTION;
 
-typedef struct {
-	uint8_t frameIndex;
-	uint8_t frameMaxCounter;
-	uint8_t frame[128];
-} frame;
-
 volatile MB_STATE modbus_state;
 volatile uint16_t modbus_response_time;
 volatile uint8_t modbus_timer_1_5_is_expired;
 volatile uint8_t modbus_timer_3_5_is_expired;
-volatile frame ReceiveFrame;
-volatile frame TransmitFrame;
+volatile frame_t ReceiveFrame;
+volatile frame_t TransmitFrame;
 
-void MB_RTUInit();
+void MB_RTUInit(void);
 uint8_t MB_RequestHoldingRegisters(uint8_t _u8DeviceAdress, uint16_t _u16StartingAddress, uint16_t _u16QuantityRegister);
-void MB_SlavePoll();
-uint8_t MB_MasterPoll();
-void MB_StartReceiver();
-void MB_StartTransmitter();
+void MB_SlavePoll(void);
+uint8_t MB_MasterPoll(void);
+void MB_StartReceiver(void);
+void MB_StartTransmitter(void);
 
-void MB_Turnaround();
-void MB_Receive();
-void MB_Transmit();
+void MB_Turnaround(void);
+void MB_Receive(void);
+void MB_Transmit(void);
 
-uint8_t MB_PORT_TRANSMIT_BUFFER_FULL();
-void MB_PORT_Timer_35_Expired();
+uint8_t MB_PORT_TRANSMIT_BUFFER_FULL(void);
+void MB_PORT_Timer_35_Expired(void);
 uint8_t MB_PORT_Transmit_Byte(uint8_t u8TrByte);
 void MB_PORT_Receive_Byte(uint8_t _u8RecByte);
-void MB_PORT_Reset_Timer();
+void MB_PORT_Reset_Timer(void);
 
-void MB_PORT_ResponseHoldingRegisters(mb_function_holding_register *holding_register);
-void MB_PORT_SendReadCoils(mb_function_coil *function_coil);
+void MB_PORT_ResponseHoldingRegisters(mb_holding_register_t *holding_register);
+void MB_PORT_SendReadCoils(mb_coil_t *function_coil);
 
 #endif /* MODBUS_RTU_H_ */

@@ -9,29 +9,12 @@
 #define MODBUS_FUNCTIONS_H_
 
 #include <avr/io.h>
+#include "modbus-rtu.h"
 
-typedef struct {
-	uint8_t function_code;
-	uint16_t starting_address;
-	uint16_t quantity_coils;
-	uint8_t byte_count;
-	uint8_t coil_status[125];
-	uint16_t crcValue;
-} mb_function_coil;
+uint8_t MB_FillHoldingRegister(mb_holding_register_t *holding_register, frame_t *FReceiveFrame);
+uint8_t MB_AddHoldingRegisterToFrame(mb_holding_register_t *holding_register, frame_t *FTransmitFrame);
 
-typedef struct {
-	uint8_t function_code;
-	uint16_t starting_address;
-	uint16_t quantity_registers;
-	uint8_t byte_count;
-	uint8_t register_value[125];
-	uint16_t crcValue;
-} mb_function_holding_register;
-
-uint8_t MB_FillHoldingRegister(mb_function_holding_register *holding_register, frame *FReceiveFrame);
-uint8_t MB_AddHoldingRegisterToFrame(mb_function_holding_register *holding_register, frame *FTransmitFrame);
-
-uint8_t MB_FillReadCoil(mb_function_coil *function_coil, frame *FReceiveFrame);
-uint8_t MB_AddReadCoilToFrame(mb_function_coil *function_coil, frame *FTransmitFrame);
+uint8_t MB_FillReadCoil(mb_coil_t *function_coil, frame_t *FReceiveFrame);
+uint8_t MB_AddReadCoilToFrame(mb_coil_t *function_coil, frame_t *FTransmitFrame);
 
 #endif /* MODBUS_FUNCTIONS_H_ */

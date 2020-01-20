@@ -1,11 +1,11 @@
-TARGET=modbus-rtu
+TARGET=main
 MCU=atmega328p
-SOURCES=modbus-rtu.c
+SOURCES=main.c modbus-functions.c modbus-rtu.c modbus-crc16.c
 
 PROGRAMMER=arduino
 #auskommentieren für automatische Wahl
-#PORT=-P/dev/ttyS0
-#BAUD=-B115200
+PORT=-P/dev/ttyS0
+BAUD=-B115200
 
 #Ab hier nichts verändern
 OBJECTS=$(SOURCES:.c=.o)
