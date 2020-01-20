@@ -88,6 +88,16 @@ void MB_Transmit() {
 	}
 }
 
+void MB_AddExceptionFrameToTransmitBuffer(MB_EXCEPTION mbExceptionCode, MB_STATE mbState) {
+	uint16_t u16CRC = 0;
+	ADD_TRANSMIT_BYTE_TO_FRAME(MB_SLAVE_ADDRESS);
+	ADD_TRANSMIT_BYTE_TO_FRAME(currentMB_State);
+	ADD_TRANSMIT_BYTE_TO_FRAME(ILLEGAL_DATA_VALUE);
+	u16CRC = usMBCRC16(u8pTransmitFrame, 3);
+	ADD_TRANSMIT_BYTE_TO_FRAME(u16CRC & 0x00FF);
+	ADD_TRANSMIT_BYTE_TO_FRAME((u16CRC & 0xFF00) >> 8);
+}
+
 void MB_Receive() {
 	if (modbus_timer_3_5_is_expired) {
 		MB_STATE currentMB_State = u8pReceiveFrame[1];
@@ -114,13 +124,25 @@ void MB_Receive() {
 			u16StartingAddress = ((uint16_t) u8pReceiveFrame[2] << 8)
 					| u8pReceiveFrame[3];
 			u8ByteCount = u16QuantityRegister * 2;
+
 			//ExceptionCode 03
-			if (!(u16QuantityRegister > 0 && u16QuantityRegister <= 0x007D)) {
+			if (u16QuantityRegister > 0 && u16QuantityRegister <= 0x007D) {
+				MB_AddExceptionFrameToTransmitBuffer(ILLEGAL_DATA_VALUE, currentMB_State);
+				break;
 			}
+
+			uint16_t u16StartingAddressLeftData = 0xFFFF - u16StartingAddress;
+			if (u16StartingAddressLeftData > u16QuantityRegister) {
+				MB_AddExceptionFrameToTransmitBuffer(ILLEGAL_DATA_ADDRESS, currentMB_State);
+				break;
+			}
+
+			//ADD Data to Transmit Frame Buffer
 			ADD_TRANSMIT_BYTE_TO_FRAME(MB_SLAVE_ADDRESS);
 			ADD_TRANSMIT_BYTE_TO_FRAME(currentMB_State);
 			ADD_TRANSMIT_BYTE_TO_FRAME(u8ByteCount);
 
+			//Frame can be maximal 125
 			uint8_t u8pRegValue[125];
 			MB_PORT_ResponseHoldingRegisters(u8pRegValue,
 					u16StartingAddress, u16QuantityRegister);
