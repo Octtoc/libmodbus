@@ -62,8 +62,8 @@ uint8_t MB_RequestHoldingRegisters(uint8_t _u8DeviceAdress,
 }
 
 void MB_Turnaround() {
-	if (MB_TimerT35Expired()) {
-		MB_T35Reset();
+	if (modbus_timer_3_5_is_expired) {
+		modbus_timer_3_5_is_expired = 0;
 		modbus_state = MB_IDLE;
 	}
 }
@@ -84,7 +84,7 @@ void MB_Transmit() {
 		//Clear Buffer
 		u8CurrentTransmissionFrame = 0;
 		u8TransmitSizeIndex = 0;
-		MB_T35Start();
+		modbus_timer_3_5_is_expired = 0;
 	}
 }
 
@@ -98,93 +98,8 @@ void MB_AddExceptionFrameToTransmitBuffer(MB_EXCEPTION mbExceptionCode, MB_STATE
 	ADD_TRANSMIT_BYTE_TO_FRAME((u16CRC & 0xFF00) >> 8);
 }
 
-int8_t MB_ReadHoldingRegister(MB_STATE currentMB_State) {
-	//Activate Function in Main to process Data and receive Transmission Frame
-	uint16_t u16QuantityRegister = 0;
-	uint16_t u16StartingAddress = 0;
-	uint8_t u8ByteCount = 0;
-	uint16_t u16CRC = 0;
-	u16QuantityRegister = ((uint16_t) u8pReceiveFrame[4] << 8)
-			| u8pReceiveFrame[5];
-	u16StartingAddress = ((uint16_t) u8pReceiveFrame[2] << 8)
-			| u8pReceiveFrame[3];
-	u8ByteCount = u16QuantityRegister * 2;
-
-	//ExceptionCode 03
-	if (u16QuantityRegister > 0 && u16QuantityRegister <= 0x007D) {
-		MB_AddExceptionFrameToTransmitBuffer(ILLEGAL_DATA_VALUE, currentMB_State);
-		return -1;
-	}
-
-	uint16_t u16StartingAddressLeftData = 0xFFFF - u16StartingAddress;
-	if (u16StartingAddressLeftData > u16QuantityRegister) {
-		MB_AddExceptionFrameToTransmitBuffer(ILLEGAL_DATA_ADDRESS, currentMB_State);
-		return -1;
-	}
-
-	//ADD Data to Transmit Frame Buffer
-	ADD_TRANSMIT_BYTE_TO_FRAME(MB_SLAVE_ADDRESS);
-	ADD_TRANSMIT_BYTE_TO_FRAME(currentMB_State);
-	ADD_TRANSMIT_BYTE_TO_FRAME(u8ByteCount);
-
-	//Frame can be maximal 125
-	uint8_t u8pRegValue[125];
-	MB_PORT_ResponseHoldingRegisters(u8pRegValue,
-			u16StartingAddress, u16QuantityRegister);
-	uint8_t i = 0;
-	while (i < u8ByteCount) {
-		ADD_TRANSMIT_BYTE_TO_FRAME(u8pRegValue[i]);
-		i++;
-	}
-	u16CRC = usMBCRC16(u8pTransmitFrame, 3 + u8ByteCount);
-	ADD_TRANSMIT_BYTE_TO_FRAME(u16CRC & 0x00FF);
-	ADD_TRANSMIT_BYTE_TO_FRAME((u16CRC & 0xFF00) >> 8);
-
-	return 0;
-}
-
 int8_t MB_ReadCoil(MB_STATE currentMB_State) {
-	uint8_t u8ByteCount = 0;
-	uint16_t u16QuantityOfCoils = 0;
-	uint16_t u16StartingAddress = 0;
-	uint16_t u16CRC = 0;
-	u16StartingAddress = u8pReceiveFrame[2] << 8;
-	u16StartingAddress &= u8pReceiveFrame[3];
-	u16QuantityOfCoils = u8pReceiveFrame[4] << 8;
-	u16QuantityOfCoils &= u8pReceiveFrame[5];
-	u8ByteCount = u16QuantityOfCoils / 8;
 
-	if ((u16QuantityOfCoils % 8) > 1) {
-		u8ByteCount++;
-	}
-	//Check Exceptions
-	//Exception Code 03
-	if (u16QuantityOfCoils > 0 && u16QuantityOfCoils <= 2000) {
-		// Todo: Exception
-	}
-	//Exception Code 02
-	uint16_t u16BytesLeft = u16StartingAddress - 0xFFFF;
-	uint16_t u16BitsLeft = u16BytesLeft * 8;
-	if (u16BitsLeft < u16QuantityOfCoils) {
-		//Todo: Exception Code 02
-	}
-	//End Exception
-
-	uint8_t u8pRegValue[125];
-	MB_PORT_SendReadCoils(u8pRegValue, u16StartingAddress, u16QuantityOfCoils);
-
-	ADD_TRANSMIT_BYTE_TO_FRAME(MB_SLAVE_ADDRESS);
-	ADD_TRANSMIT_BYTE_TO_FRAME(currentMB_State);
-	ADD_TRANSMIT_BYTE_TO_FRAME(u8ByteCount);
-	uint8_t i = 0;
-	while (i < u8ByteCount) {
-		ADD_TRANSMIT_BYTE_TO_FRAME(u8pRegValue[i]);
-		i++;
-	}
-
-	u16CRC = usMBCRC16(u8pTransmitFrame, 3 + u8ByteCount);
-	ADD_TRANSMIT_BYTE_TO_FRAME(u16CRC & 0x00FF);
-	ADD_TRANSMIT_BYTE_TO_FRAME((u16CRC & 0xFF00) >> 8);
 }
 
 void MB_Receive() {
@@ -218,11 +133,17 @@ void MB_Receive() {
 		}
 
 		switch (currentMB_State) {
-		case READ_HOLDING_REGISTER:
-			MB_ReadHoldingRegister(currentMB_State);
+		case READ_HOLDING_REGISTER: {
+			mb_function_holding_register holding_register;
+			MB_FillHoldingRegister(&holding_register, u8pReceiveFrame);
+			MB_AddHoldingRegisterToFrame(&holding_register, u8pTransmitFrame);
+
 			break;
+		}
 		case READ_COILS: {
-			MB_ReadCoil(currentMB_State);
+			mb_function_coil coil;
+			MB_FillReadCoil(&coil, u8pReceiveFrame);
+			MB_AddReadCoilToFrame(&coil, u8pTransmitFrame);
 			break;
 		}
 		case WRITE_SINGLE_COIL: {
@@ -313,7 +234,7 @@ void MB_PORT_Timer_35_Expired() {
 void MB_PORT_Receive_Byte(uint8_t _u8RecByte) {
 	MB_PORT_Reset_Timer();
 	if(modbus_state == MB_IDLE) {
-		MB_T35Start();
+		modbus_timer_3_5_is_expired = 0;
 		modbus_state = MB_Receive;
 	}
 	
