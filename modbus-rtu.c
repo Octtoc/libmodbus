@@ -145,7 +145,7 @@ void MB_Receive() {
 
 		//Start Transmitter Bus and send Data back
 		MB_START_TRANSMITTER;
-		modbus_state = MB_Transmit;
+		modbus_state = MB_TX;
 
 		ReceiveFrame.frameIndex = 0;
 		ReceiveFrame.frameMaxCounter = 0;
@@ -178,13 +178,13 @@ void MB_PORT_Timer_35_Expired() {
 }
 
 void MB_PORT_Receive_Byte(uint8_t _u8RecByte) {
-	MB_PORT_Reset_Timer();
 	if(modbus_state == MB_IDLE) {
 		modbus_timer_3_5_is_expired = 0;
-		modbus_state = MB_Receive;
+		modbus_state = MB_RX;
 	}
 	
 	if(modbus_state == MB_Receive) {
+		modbus_timer_3_5_is_expired = 0;
 		ReceiveFrame.frame[ReceiveFrame.frameMaxCounter++] = _u8RecByte;
 	}
 }
