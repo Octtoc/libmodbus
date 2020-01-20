@@ -279,6 +279,8 @@ void MB_SlavePoll() {
 }
 
 uint8_t MB_MasterPoll() {
+	return 0;
+}
 
 void MB_PORT_Timer_35_Expired() {
 	modbus_timer_3_5_is_expired = 1;
