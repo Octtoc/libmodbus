@@ -92,11 +92,16 @@ void MB_Turnaround();
 void MB_Receive();
 void MB_Transmit();
 
+int8_t MB_ReadHoldingRegister(MB_STATE currentMB_State);
+int8_t MB_ReadCoil(MB_STATE currentMB_State)
+
 uint8_t MB_PORT_TRANSMIT_BUFFER_FULL();
 void MB_PORT_Timer_35_Expired();
 uint8_t MB_PORT_Transmit_Byte(uint8_t u8TrByte);
 void MB_PORT_Receive_Byte(uint8_t _u8RecByte);
 void MB_PORT_Reset_Timer();
 void MB_PORT_ResponseHoldingRegisters(uint8_t *_u8pRegisterValue, uint16_t u16StartingAddress, uint8_t u16QuantityRegister);
+
+void MB_PORT_SendReadCoils(uint8_t *u8pRegValue, uint16_t u16StartingAddress, uint16_t u16QuantityCoils);
 
 #endif /* MODBUS_RTU_H_ */
