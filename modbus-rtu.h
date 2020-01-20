@@ -59,6 +59,19 @@ enum {
 };
 typedef uint8_t MB_FUNCTION;
 
+enum {
+	ILLEGAL_FUNCTION					= 0x01,
+	ILLEGAL_DATA_ADDRESS				= 0x02,
+	ILLEGAL_DATA_VALUE					= 0x03,
+	SERVER_DEVICE_FAILURE				= 0x04,
+	ACKNOWLEDGE							= 0x05,
+	SERVER_DEVICE_BUSY					= 0x06,
+	MEMORY_PARITY_ERROR					= 0x08,
+	GATEWAY_PATH_UNAVAILABLE			= 0x0A,
+	GATEWAY_TARGET_DEVICE_FAILED_RESP	= 0x0B
+};
+typedef uint8_t MB_EXCEPTION;
+
 volatile MB_STATE modbus_state;
 volatile uint16_t modbus_response_time;
 volatile uint8_t modbus_timer_1_5_is_expired;
