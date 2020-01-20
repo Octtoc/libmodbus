@@ -102,9 +102,25 @@ void MB_Receive() {
 	if (modbus_timer_3_5_is_expired) {
 		MB_STATE currentMB_State = u8pReceiveFrame[1];
 		uint8_t currentSlaveAddress = u8pReceiveFrame[0];
+		uint16_t u16ReceiveFrameSelfCalculatedCRC = 0;
+		uint16_t u16ReceiveFrameCRC = 0;
 
 		modbus_timer_3_5_is_expired = 0;
 		u8TransmitSizeIndex = 0;
+
+		//Convert the last 2 CRC Bytes into a 16 Bit value
+		u16ReceiveFrameCRC = (u8pReceiveFrame[u8ReceiveSizeIndex] << 8) | u8pReceiveFrame[u8ReceiveSizeIndex-1];
+
+		//-2 because the last 2 Bytes are the CRC from the request
+		u16ReceiveFrameSelfCalculatedCRC = usMBCRC16(u8pReceiveFrame, u8ReceiveSizeIndex-2);
+
+		//Exception because the calculated and the received CRC value is not the same
+		if (u16ReceiveFrameCRC != u16ReceiveFrameSelfCalculatedCRC) {
+			MB_START_RECEIVER;
+			modbus_state = MB_IDLE;
+			return;
+		}
+
 		//If Frame is not addressed to me
 		if (currentSlaveAddress != MB_SLAVE_ADDRESS) {
 			MB_START_RECEIVER;
