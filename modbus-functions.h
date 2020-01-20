@@ -28,10 +28,10 @@ typedef struct {
 	uint16_t crcValue;
 } mb_function_holding_register;
 
-uint8_t MB_FillHoldingRegister(mb_function_holding_register *holding_register, uint8_t *u8pReceiveFrame);
-uint8_t MB_AddHoldingRegisterToFrame(mb_function_holding_register *holding_register, uint8_t *u8pTransmitFrame);
+uint8_t MB_FillHoldingRegister(mb_function_holding_register *holding_register, frame *FReceiveFrame);
+uint8_t MB_AddHoldingRegisterToFrame(mb_function_holding_register *holding_register, frame *FTransmitFrame);
 
-uint8_t MB_FillReadCoil(mb_function_coil *function_coil, uint8_t *u8pReceiveFrame);
-uint8_t MB_AddReadCoilToFrame(mb_function_coil *function_coil, uint8_t *u8pTransmitFrame);
+uint8_t MB_FillReadCoil(mb_function_coil *function_coil, frame *FReceiveFrame);
+uint8_t MB_AddReadCoilToFrame(mb_function_coil *function_coil, frame *FTransmitFrame);
 
 #endif /* MODBUS_FUNCTIONS_H_ */

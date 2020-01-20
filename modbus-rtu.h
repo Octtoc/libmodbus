@@ -73,14 +73,18 @@ enum {
 };
 typedef uint8_t MB_EXCEPTION;
 
+typedef struct {
+	uint8_t frameIndex;
+	uint8_t frameMaxCounter;
+	uint8_t frame[128];
+} frame;
+
 volatile MB_STATE modbus_state;
 volatile uint16_t modbus_response_time;
 volatile uint8_t modbus_timer_1_5_is_expired;
 volatile uint8_t modbus_timer_3_5_is_expired;
-volatile uint8_t u8TransmitSizeIndex;
-volatile uint8_t u8ReceiveSizeIndex;
-volatile uint8_t u8pReceiveFrame[128];
-volatile uint8_t u8pTransmitFrame[128];
+volatile frame ReceiveFrame[128];
+volatile frame TransmitFrame[128];
 
 void MB_RTUInit();
 uint8_t MB_RequestHoldingRegisters(uint8_t _u8DeviceAdress, uint16_t _u16StartingAddress, uint16_t _u16QuantityRegister);

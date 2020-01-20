@@ -69,54 +69,35 @@ void MB_Turnaround() {
 }
 
 void MB_Transmit() {
-	//If i can send data
-	static uint8_t u8CurrentTransmissionFrame = 0;
-	if (u8CurrentTransmissionFrame < u8TransmitSizeIndex) {
-		if (MB_PORT_Transmit_Byte(
-				u8pTransmitFrame[u8CurrentTransmissionFrame])) {
-			u8CurrentTransmissionFrame++;
+	if (TransmitFrame.frameIndex < TransmitFrame.frameMaxCounter) {
+		if (MB_PORT_Transmit_Byte(TransmitFrame.frame[TransmitFrame.frameIndex])) {
+			TransmitFrame.frameIndex++;
 		}
 	} else if (MB_PORT_TRANSMIT_BUFFER_FULL()) {
 		//Transmission finished
 		UCSR0A |= (1 << TXC0);
 		MB_START_RECEIVER;
 		modbus_state = MB_TURNAROUND; //Wait 3,5 Character
-		//Clear Buffer
-		u8CurrentTransmissionFrame = 0;
-		u8TransmitSizeIndex = 0;
+		TransmitFrame.frameIndex = 0;
+		TransmitFrame.frameMaxCounter = 0;
 		modbus_timer_3_5_is_expired = 0;
 	}
 }
 
-void MB_AddExceptionFrameToTransmitBuffer(MB_EXCEPTION mbExceptionCode, MB_STATE mbState) {
-	uint16_t u16CRC = 0;
-	ADD_TRANSMIT_BYTE_TO_FRAME(MB_SLAVE_ADDRESS);
-	ADD_TRANSMIT_BYTE_TO_FRAME(mbState);
-	ADD_TRANSMIT_BYTE_TO_FRAME(ILLEGAL_DATA_VALUE);
-	u16CRC = usMBCRC16(u8pTransmitFrame, 3);
-	ADD_TRANSMIT_BYTE_TO_FRAME(u16CRC & 0x00FF);
-	ADD_TRANSMIT_BYTE_TO_FRAME((u16CRC & 0xFF00) >> 8);
-}
-
-int8_t MB_ReadCoil(MB_STATE currentMB_State) {
-
-}
-
 void MB_Receive() {
 	if (modbus_timer_3_5_is_expired) {
-		MB_STATE currentMB_State = u8pReceiveFrame[1];
-		uint8_t currentSlaveAddress = u8pReceiveFrame[0];
+		MB_STATE currentMB_State = ReceiveFrame[1];
+		uint8_t currentSlaveAddress = ReceiveFrame[0];
 		uint16_t u16ReceiveFrameSelfCalculatedCRC = 0;
 		uint16_t u16ReceiveFrameCRC = 0;
 
 		modbus_timer_3_5_is_expired = 0;
-		u8TransmitSizeIndex = 0;
 
 		//Convert the last 2 CRC Bytes into a 16 Bit value
-		u16ReceiveFrameCRC = (u8pReceiveFrame[u8ReceiveSizeIndex] << 8) | u8pReceiveFrame[u8ReceiveSizeIndex-1];
+		u16ReceiveFrameCRC = (ReceiveFrame.frame[ReceiveFrame.frameMaxCounter] << 8) | ReceiveFrame[ReceiveFrame.frameMaxCounter-1];
 
 		//-2 because the last 2 Bytes are the CRC from the request
-		u16ReceiveFrameSelfCalculatedCRC = usMBCRC16(u8pReceiveFrame, u8ReceiveSizeIndex-2);
+		u16ReceiveFrameSelfCalculatedCRC = usMBCRC16(ReceiveFrame, ReceiveFrame.frameMaxCounter-2);
 
 		//Exception because the calculated and the received CRC value is not the same
 		if (u16ReceiveFrameCRC != u16ReceiveFrameSelfCalculatedCRC) {
@@ -135,74 +116,39 @@ void MB_Receive() {
 		switch (currentMB_State) {
 		case READ_HOLDING_REGISTER: {
 			mb_function_holding_register holding_register;
-			MB_FillHoldingRegister(&holding_register, u8pReceiveFrame);
-			MB_AddHoldingRegisterToFrame(&holding_register, u8pTransmitFrame);
+			MB_FillHoldingRegister(&holding_register, ReceiveFrame);
+			MB_AddHoldingRegisterToFrame(&holding_register, TransmitFrame);
 
 			break;
 		}
 		case READ_COILS: {
 			mb_function_coil coil;
-			MB_FillReadCoil(&coil, u8pReceiveFrame);
-			MB_AddReadCoilToFrame(&coil, u8pTransmitFrame);
+			MB_FillReadCoil(&coil, ReceiveFrame);
+			MB_AddReadCoilToFrame(&coil, TransmitFrame);
 			break;
 		}
 		case WRITE_SINGLE_COIL: {
-			uint16_t u16OutputAddress = 0;
-			uint16_t u16OutputValue = 0;
-			ADD_TRANSMIT_BYTE_TO_FRAME(currentMB_State);
-			ADD_TRANSMIT_BYTE_TO_FRAME(u8pReceiveFrame[2]);
-			ADD_TRANSMIT_BYTE_TO_FRAME(u8pReceiveFrame[3]);
-			ADD_TRANSMIT_BYTE_TO_FRAME(u8pReceiveFrame[4]);
-			ADD_TRANSMIT_BYTE_TO_FRAME(u8pReceiveFrame[5]);
-			// Todo: Exception
-			//Exception
-			//ExceptionCode 03
-			if (u16OutputValue == 0x0000 || u16OutputValue == 0xFF00) {
-				// Todo: Exception
-			}
-			//ExceptionCode 02
-			if (u16OutputAddress >= 0x0000) {
-			}
-			// Todo: MB_PORT_SendWrite_Single_Coil();
 			break;
 		}
-		case WRITE_SINGLE_REGISTER:
-			ADD_TRANSMIT_BYTE_TO_FRAME(currentMB_State);
-			ADD_TRANSMIT_BYTE_TO_FRAME(u8pReceiveFrame[2]);
-			ADD_TRANSMIT_BYTE_TO_FRAME(u8pReceiveFrame[3]);
-			ADD_TRANSMIT_BYTE_TO_FRAME(u8pReceiveFrame[4]);
-			ADD_TRANSMIT_BYTE_TO_FRAME(u8pReceiveFrame[5]);
-			// Todo: Exception
-			// Todo: MB_PORT_SendWrite_Single_Register();
+		case WRITE_SINGLE_REGISTER: {
 			break;
-		case WRITE_MULTIPLE_COIL:
-			ADD_TRANSMIT_BYTE_TO_FRAME(currentMB_State);
-			ADD_TRANSMIT_BYTE_TO_FRAME(u8pReceiveFrame[2]);
-			ADD_TRANSMIT_BYTE_TO_FRAME(u8pReceiveFrame[3]);
-			ADD_TRANSMIT_BYTE_TO_FRAME(u8pReceiveFrame[4]);
-			ADD_TRANSMIT_BYTE_TO_FRAME(u8pReceiveFrame[5]);
-			// Todo: Exception
-			// Todo: MB_PORT_SendWrite_Multiple_Coils();
-			break;
-		case WRITE_MULTIPLE_REGISTER:
-			ADD_TRANSMIT_BYTE_TO_FRAME(currentMB_State);
-			ADD_TRANSMIT_BYTE_TO_FRAME(u8pReceiveFrame[2]);
-			ADD_TRANSMIT_BYTE_TO_FRAME(u8pReceiveFrame[3]);
-			ADD_TRANSMIT_BYTE_TO_FRAME(u8pReceiveFrame[4]);
-			ADD_TRANSMIT_BYTE_TO_FRAME(u8pReceiveFrame[5]);
-			// Todo: Exception
-			// Todo: MB_PORT_SendWrite_Multiple_Register();
-			break;
-		case READ_WRITE_REGISTER:
-			ADD_TRANSMIT_BYTE_TO_FRAME(currentMB_State);
-			break;
-			//Todo: Exception Function Code not accepted
 		}
+		case WRITE_MULTIPLE_COIL: {
+			break;
+		}
+		case WRITE_MULTIPLE_REGISTER: {
+			break;
+		}
+		case READ_WRITE_REGISTER: {
+			break;
+		}
+
 		//Start Transmitter Bus and send Data back
 		MB_START_TRANSMITTER;
 		modbus_state = MB_Transmit;
 
-		u8ReceiveSizeIndex = 0;
+		ReceiveFrame.frameIndex = 0;
+		ReceiveFrame.frameMaxCounter = 0;
 	}
 }
 
@@ -239,6 +185,6 @@ void MB_PORT_Receive_Byte(uint8_t _u8RecByte) {
 	}
 	
 	if(modbus_state == MB_Receive) {
-		u8pReceiveFrame[u8ReceiveSizeIndex++] = _u8RecByte;
+		ReceiveFrame.frame[ReceiveFrame.frameMaxCounter++] = _u8RecByte;
 	}
 }
