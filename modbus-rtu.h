@@ -83,8 +83,8 @@ volatile MB_STATE modbus_state;
 volatile uint16_t modbus_response_time;
 volatile uint8_t modbus_timer_1_5_is_expired;
 volatile uint8_t modbus_timer_3_5_is_expired;
-volatile frame ReceiveFrame[128];
-volatile frame TransmitFrame[128];
+volatile frame ReceiveFrame;
+volatile frame TransmitFrame;
 
 void MB_RTUInit();
 uint8_t MB_RequestHoldingRegisters(uint8_t _u8DeviceAdress, uint16_t _u16StartingAddress, uint16_t _u16QuantityRegister);

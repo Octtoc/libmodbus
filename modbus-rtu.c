@@ -12,8 +12,6 @@ void MB_RTUInit() {
 	modbus_response_time = 0;
 	modbus_timer_1_5_is_expired = 0;
 	modbus_timer_3_5_is_expired = 0;
-	u8TransmitSizeIndex = 0;
-	u8ReceiveSizeIndex = 0;
 	
 	RS485_TX_RX_SWITCH_DDR |= (1<<RS485_TX_RX_SWITCH_PIN);
 	RS485_TX_RX_SWITCH_PORT &= ~(1<<RS485_TX_RX_SWITCH_PIN);
@@ -50,12 +48,13 @@ uint8_t MB_RequestHoldingRegisters(uint8_t _u8DeviceAdress,
 	u8Frame[6] = u16Crc & 0x00FF;
 	u8Frame[7] = u16Crc >> 8;
 	
-	for(uint8_t u8iCountTransmit = 0; u8iCountTransmit < 8; u8iCountTransmit++) {
+	uint8_t u8iCountTransmit;
+	for(u8iCountTransmit = 0; u8iCountTransmit < 8; u8iCountTransmit++) {
 		//MB_TransmitByteFIFO(u8Frame[u8iCountTransmit]);
 	}
 	
 	MB_START_TRANSMITTER;
-	modbus_state = MB_Transmit;
+	modbus_state = MB_TX;
 	modbus_response_time = 0;
 	
 	return 1;
@@ -86,18 +85,18 @@ void MB_Transmit() {
 
 void MB_Receive() {
 	if (modbus_timer_3_5_is_expired) {
-		MB_STATE currentMB_State = ReceiveFrame[1];
-		uint8_t currentSlaveAddress = ReceiveFrame[0];
+		MB_STATE currentMB_State = ReceiveFrame.frame[1];
+		uint8_t currentSlaveAddress = ReceiveFrame.frame[0];
 		uint16_t u16ReceiveFrameSelfCalculatedCRC = 0;
 		uint16_t u16ReceiveFrameCRC = 0;
 
 		modbus_timer_3_5_is_expired = 0;
 
 		//Convert the last 2 CRC Bytes into a 16 Bit value
-		u16ReceiveFrameCRC = (ReceiveFrame.frame[ReceiveFrame.frameMaxCounter] << 8) | ReceiveFrame[ReceiveFrame.frameMaxCounter-1];
+		u16ReceiveFrameCRC = (ReceiveFrame.frame[ReceiveFrame.frameMaxCounter] << 8) | ReceiveFrame.frame[ReceiveFrame.frameMaxCounter-1];
 
 		//-2 because the last 2 Bytes are the CRC from the request
-		u16ReceiveFrameSelfCalculatedCRC = usMBCRC16(ReceiveFrame, ReceiveFrame.frameMaxCounter-2);
+		u16ReceiveFrameSelfCalculatedCRC = usMBCRC16(ReceiveFrame.frame, ReceiveFrame.frameMaxCounter-2);
 
 		//Exception because the calculated and the received CRC value is not the same
 		if (u16ReceiveFrameCRC != u16ReceiveFrameSelfCalculatedCRC) {
@@ -116,15 +115,15 @@ void MB_Receive() {
 		switch (currentMB_State) {
 		case READ_HOLDING_REGISTER: {
 			mb_function_holding_register holding_register;
-			MB_FillHoldingRegister(&holding_register, ReceiveFrame);
-			MB_AddHoldingRegisterToFrame(&holding_register, TransmitFrame);
+			//MB_FillHoldingRegister(&holding_register, &ReceiveFrame);
+			//MB_AddHoldingRegisterToFrame(&holding_register, &TransmitFrame);
 
 			break;
 		}
 		case READ_COILS: {
 			mb_function_coil coil;
-			MB_FillReadCoil(&coil, ReceiveFrame);
-			MB_AddReadCoilToFrame(&coil, TransmitFrame);
+			//MB_FillReadCoil(&coil, ReceiveFrame);
+			//MB_AddReadCoilToFrame(&coil, TransmitFrame);
 			break;
 		}
 		case WRITE_SINGLE_COIL: {
@@ -150,6 +149,7 @@ void MB_Receive() {
 		ReceiveFrame.frameIndex = 0;
 		ReceiveFrame.frameMaxCounter = 0;
 	}
+}
 }
 
 void MB_SlavePoll() {
