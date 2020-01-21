@@ -85,6 +85,9 @@ uint8_t MB_PORT_TRANSMIT_BUFFER_FULL() {
 void MB_PORT_Reset_Timer(void) {
 	TCNT1 = 0;
 }
+void MB_PORT_Flush_Buffer() {
+	UCSR0A |= (1 << TXC0);
+}
 
 ISR(TIMER1_COMPA_vect) {
 	MB_PORT_Timer_35_Expired();

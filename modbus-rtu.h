@@ -95,6 +95,7 @@ void MB_PORT_Timer_35_Expired(void);
 uint8_t MB_PORT_Transmit_Byte(uint8_t u8TrByte);
 void MB_PORT_Receive_Byte(uint8_t _u8RecByte);
 void MB_PORT_Reset_Timer(void);
+void MB_PORT_Flush_Buffer(void);
 
 void MB_PORT_ResponseHoldingRegisters(mb_holding_register_t *holding_register);
 void MB_PORT_SendReadCoils(mb_coil_t *function_coil);

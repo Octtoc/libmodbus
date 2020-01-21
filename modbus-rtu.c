@@ -74,7 +74,7 @@ void MB_Transmit() {
 		}
 	} else if (MB_PORT_TRANSMIT_BUFFER_FULL()) {
 		//Transmission finished
-		UCSR0A |= (1 << TXC0);
+		MB_PORT_Flush_Buffer();
 		MB_START_RECEIVER;
 		modbus_state = MB_TURNAROUND; //Wait 3,5 Character
 		TransmitFrame.frameIndex = 0;
