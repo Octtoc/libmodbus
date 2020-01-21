@@ -87,7 +87,7 @@ void MB_PORT_Reset_Timer(void) {
 }
 
 ISR(TIMER1_COMPA_vect) {
-	//MB_PORT_Timer_35();
+	MB_PORT_Timer_35_Expired();
 }
 
 ISR(USART_RX_vect) {

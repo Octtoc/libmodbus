@@ -115,15 +115,15 @@ void MB_Receive() {
 		switch (currentMB_State) {
 		case READ_HOLDING_REGISTER: {
 			mb_holding_register_t holding_register;
-			//MB_FillHoldingRegister(&holding_register, &ReceiveFrame);
-			//MB_AddHoldingRegisterToFrame(&holding_register, &TransmitFrame);
+			MB_FillHoldingRegister(&holding_register, &ReceiveFrame);
+			MB_AddHoldingRegisterToFrame(&holding_register, &TransmitFrame);
 
 			break;
 		}
 		case READ_COILS: {
 			mb_coil_t coil;
-			//MB_FillReadCoil(&coil, ReceiveFrame);
-			//MB_AddReadCoilToFrame(&coil, TransmitFrame);
+			MB_FillReadCoil(&coil, &ReceiveFrame);
+			MB_AddReadCoilToFrame(&coil, &TransmitFrame);
 			break;
 		}
 		case WRITE_SINGLE_COIL: {
@@ -185,6 +185,7 @@ void MB_PORT_Receive_Byte(uint8_t _u8RecByte) {
 	
 	if(modbus_state == MB_RX) {
 		modbus_timer_3_5_is_expired = 0;
+		MB_PORT_Reset_Timer();
 		ReceiveFrame.frameField[ReceiveFrame.frameMaxCounter++] = _u8RecByte;
 	}
 }
