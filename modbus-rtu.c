@@ -184,8 +184,9 @@ void MB_PORT_Receive_Byte(uint8_t _u8RecByte) {
 	}
 	
 	if(modbus_state == MB_RX) {
-		modbus_timer_3_5_is_expired = 0;
 		MB_PORT_Reset_Timer();
+		modbus_timer_3_5_is_expired = 0;
+
 		ReceiveFrame.frameField[ReceiveFrame.frameMaxCounter++] = _u8RecByte;
 	}
 }
