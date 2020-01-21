@@ -79,6 +79,7 @@ void MB_Transmit() {
 		modbus_state = MB_TURNAROUND; //Wait 3,5 Character
 		TransmitFrame.frameIndex = 0;
 		TransmitFrame.frameMaxCounter = 0;
+		MB_PORT_Reset_Timer();
 		modbus_timer_3_5_is_expired = 0;
 	}
 }
