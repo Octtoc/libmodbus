@@ -36,4 +36,10 @@ struct mb_holding_register{
 };
 typedef struct mb_holding_register mb_holding_register_t;
 
+struct mb_exception {
+	uint8_t functionCode;
+	uint8_t exceptionCode;
+};
+typedef struct mb_exception mb_exception_t;
+
 #endif /* MODBUS_H_ */

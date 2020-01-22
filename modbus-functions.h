@@ -1,15 +1,16 @@
 /*
- * modbus-functions.h
+ * modbus-function.h
  *
- *  Created on: 20.01.2020
+ *  Created on: 22.01.2020
  *      Author: Michael
  */
 
 #ifndef MODBUS_FUNCTIONS_H_
 #define MODBUS_FUNCTIONS_H_
 
-#include <avr/io.h>
-#include "modbus-rtu.h"
+#include "modbus.h"
+
+uint8_t MB_AddExceptionToFrame(mb_exception_t *exception, frame_t *FTransmitFrame);
 
 uint8_t MB_FillHoldingRegister(mb_holding_register_t *holding_register, frame_t *FReceiveFrame);
 uint8_t MB_AddHoldingRegisterToFrame(mb_holding_register_t *holding_register, frame_t *FTransmitFrame);

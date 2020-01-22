@@ -71,10 +71,11 @@ uint8_t MB_PORT_Transmit_Byte(uint8_t u8TrByte) {
 	return 0;
 }
 void MB_PORT_ResponseHoldingRegisters(mb_holding_register_t *holding_register) {
-	holding_register->register_value[0] = 0x35;
-	holding_register->register_value[1] = 0x34;
-	holding_register->register_value[2] = 0x33;
-	holding_register->register_value[3] = 0x32;
+	uint8_t i = 0;
+
+	for (i=0; i < holding_register->byte_count; i++) {
+		holding_register->register_value[i] = 0x32;
+	}
 }
 void MB_PORT_SendReadCoils(mb_coil_t *function_coil) {
 	function_coil->coil_status[0] = 0x02;
