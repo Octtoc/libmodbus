@@ -8,6 +8,18 @@
 #include "modbus-functions.h"
 #include "modbus-rtu.h"
 
+uint8_t MB_AddExceptionToFrame(mb_exception_t *exception, frame_t *FTransmitFrame) {
+	uint16_t u16CRC = 0;
+	FTransmitFrame->frameField[FTransmitFrame->frameMaxCounter++] = MB_SLAVE_ADDRESS;
+	FTransmitFrame->frameField[FTransmitFrame->frameMaxCounter++] = exception->functionCode;
+	FTransmitFrame->frameField[FTransmitFrame->frameMaxCounter++] = exception->exceptionCode;
+
+	u16CRC = usMBCRC16(FTransmitFrame->frameField, 3);
+	FTransmitFrame->frameField[FTransmitFrame->frameMaxCounter++] = u16CRC & 0x00FF;
+	FTransmitFrame->frameField[FTransmitFrame->frameMaxCounter++] = (u16CRC & 0xFF00) >> 8;
+	return 0;
+}
+
 uint8_t MB_AddHoldingRegisterToFrame(mb_holding_register_t *holding_register, frame_t *FTransmitFrame) {
 	//ADD Data to Transmit Frame Buffer
 	uint8_t i = 0;
@@ -75,20 +87,20 @@ uint8_t MB_FillHoldingRegister(mb_holding_register_t *holding_register,
 			((uint16_t) FReceiveFrame->frameField[2] << 8)
 					| FReceiveFrame->frameField[3];
 	holding_register->byte_count = holding_register->quantity_registers * 2;
+
 	//ExceptionCode Handling
-	if (holding_register->quantity_registers > 0
-			&& holding_register->quantity_registers <= 0x007D) {
+	if (holding_register->starting_address > 0
+			&& holding_register->starting_address <= 0x007D) {
 		//MB_AddExceptionFrameToTransmitBuffer(ILLEGAL_DATA_VALUE, currentMB_State);
 		return ILLEGAL_DATA_VALUE;
 	}
 	u16StartingAddressLeftData = 0xFFFF - holding_register->starting_address;
-	if (u16StartingAddressLeftData > holding_register->quantity_registers) {
+	if (u16StartingAddressLeftData > (holding_register->quantity_registers * 2)) {
 		//MB_AddExceptionFrameToTransmitBuffer(ILLEGAL_DATA_ADDRESS, currentMB_State);
 		return ILLEGAL_DATA_ADDRESS;
 	}
 	//END Exception Handling
 	MB_PORT_ResponseHoldingRegisters(holding_register);
-	holding_register->crcValue = usMBCRC16(TransmitFrame.frameField,
-			3 + holding_register->byte_count);
+
 	return 0;
 }

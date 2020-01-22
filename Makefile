@@ -2,10 +2,9 @@ TARGET=main
 MCU=atmega328p
 SOURCES=main.c modbus-functions.c modbus-rtu.c modbus-crc16.c
 
-PROGRAMMER=arduino
+PROGRAMMER=avrisp2
 #auskommentieren für automatische Wahl
-PORT=-P/dev/ttyS0
-BAUD=-B115200
+PORT=-P usb
 
 #Ab hier nichts verändern
 OBJECTS=$(SOURCES:.c=.o)
@@ -34,7 +33,7 @@ size:
 	avr-size --mcu=$(MCU) -C $(TARGET).elf
 
 program:
-	avrdude -p$(MCU) $(PORT) $(BAUD) -c$(PROGRAMMER) -Uflash:w:$(TARGET).hex:a
+	avrdude -p$(MCU) $(PORT) -c$(PROGRAMMER) -Uflash:w:$(TARGET).hex:a
 
 clean_tmp:
 	rm -rf *.o
