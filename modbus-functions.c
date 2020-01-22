@@ -60,7 +60,7 @@ uint8_t MB_AddReadCoilToFrame(mb_coil_t *function_coil, frame_t *FTransmitFrame)
 	uint16_t u16CRC;
 
 	FTransmitFrame->frameField[FTransmitFrame->frameMaxCounter++] = MB_SLAVE_ADDRESS;
-	FTransmitFrame->frameField[FTransmitFrame->frameMaxCounter++] = READ_HOLDING_REGISTER;
+	FTransmitFrame->frameField[FTransmitFrame->frameMaxCounter++] = READ_COILS;
 	FTransmitFrame->frameField[FTransmitFrame->frameMaxCounter++] = function_coil->byte_count;
 
 	i = 0;
