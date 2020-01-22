@@ -69,7 +69,7 @@ uint8_t MB_AddReadCoilToFrame(mb_coil_t *function_coil, frame_t *FTransmitFrame)
 		i++;
 	}
 
-	u16CRC = usMBCRC16(FTransmitFrame->frameField, 3 + function_coil->byte_count);
+	u16CRC = usMBCRC16(FTransmitFrame->frameField, FTransmitFrame->frameMaxCounter);
 	FTransmitFrame->frameField[FTransmitFrame->frameMaxCounter++] = u16CRC & 0x00FF;
 	FTransmitFrame->frameField[FTransmitFrame->frameMaxCounter++] = (u16CRC & 0xFF00) >> 8;
 
