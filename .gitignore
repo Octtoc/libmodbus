@@ -2,3 +2,5 @@
 .cproject
 .settings
 *.o
+*.elf
+*.hex

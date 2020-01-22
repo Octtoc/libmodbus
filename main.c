@@ -24,6 +24,8 @@
 void UartInit(void);
 void TimerInit(void);
 
+uint16_t mb_registers[40];
+
 int main(void)
 {
     DDRB = (1<<PB0) | (1<<PB1) | (1<<PB2) | (1<<PB2);
