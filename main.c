@@ -109,3 +109,7 @@ ISR(TIMER1_COMPA_vect) {
 ISR(USART_RX_vect) {
 	MB_PORT_Receive_Byte(UDR0);
 }
+
+void MB_PORT_WriteSingleCoil(mb_write_coil_t *function_write_coil) {
+
+}

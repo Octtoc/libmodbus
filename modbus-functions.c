@@ -106,9 +106,23 @@ uint8_t MB_FillHoldingRegister(mb_holding_register_t *holding_register,
 }
 
 uint8_t MB_FillWriteCoil(mb_write_coil_t *function_write_coil, frame_t *FReceiveFrame) {
-
+	function_write_coil->outputAddress = ((uint16_t) FReceiveFrame->frameField[2] << 8) | FReceiveFrame->frameField[3];
+	function_write_coil->outputValue = ((uint16_t) FReceiveFrame->frameField[4] << 8) | FReceiveFrame->frameField[5];
+	return 0;
 }
 
 uint8_t MB_AddWriteCoilToFrame(mb_write_coil_t *function_write_coil, frame_t *FTransmitFrame) {
+	uint16_t u16CRC = 0;
+	FTransmitFrame->frameField[FTransmitFrame->frameMaxCounter++] = MB_SLAVE_ADDRESS;
+	FTransmitFrame->frameField[FTransmitFrame->frameMaxCounter++] = WRITE_SINGLE_COIL;
+	FTransmitFrame->frameField[FTransmitFrame->frameMaxCounter++] = function_write_coil->outputAddress >> 8;
+	FTransmitFrame->frameField[FTransmitFrame->frameMaxCounter++] = function_write_coil->outputAddress;
+	FTransmitFrame->frameField[FTransmitFrame->frameMaxCounter++] = function_write_coil->outputValue >> 8;
+	FTransmitFrame->frameField[FTransmitFrame->frameMaxCounter++] = function_write_coil->outputValue;
 
+	MB_PORT_WriteSingleCoil(function_write_coil);
+
+	u16CRC = usMBCRC16(FTransmitFrame->frameField, FTransmitFrame->frameMaxCounter);
+	FTransmitFrame->frameField[FTransmitFrame->frameMaxCounter++] = u16CRC & 0x00FF;
+	FTransmitFrame->frameField[FTransmitFrame->frameMaxCounter++] = (u16CRC & 0xFF00) >> 8;
 }

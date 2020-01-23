@@ -27,8 +27,8 @@ struct mb_coil{
 typedef struct mb_coil mb_coil_t;
 
 struct mb_write_coil {
-	uint8_t outputAddress;
-	uint8_t outputValue;
+	uint16_t outputAddress;
+	uint16_t outputValue;
 };
 typedef struct mb_write_coil mb_write_coil_t;
 

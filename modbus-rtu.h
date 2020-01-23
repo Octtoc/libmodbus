@@ -99,5 +99,6 @@ void MB_PORT_Flush_Buffer(void);
 
 void MB_PORT_ResponseHoldingRegisters(mb_holding_register_t *holding_register);
 void MB_PORT_SendReadCoils(mb_coil_t *function_coil);
+void MB_PORT_WriteSingleCoil(mb_write_coil_t *function_write_coil);
 
 #endif /* MODBUS_RTU_H_ */
