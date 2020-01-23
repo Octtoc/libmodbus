@@ -50,20 +50,18 @@ void MB_Receive() {
 
 		modbus_timer_3_5_is_expired = 0;
 
-		//Todo: Bug test
 		//Convert the last 2 CRC Bytes into a 16 Bit value
-		/*u16ReceiveFrameCRC = ((uint16_t)ReceiveFrame.frameField[ReceiveFrame.frameMaxCounter] << 8) | ReceiveFrame.frameField[ReceiveFrame.frameMaxCounter-1];
+		u16ReceiveFrameCRC = ((uint16_t)ReceiveFrame.frameField[ReceiveFrame.frameMaxCounter] << 8)
+						| ReceiveFrame.frameField[ReceiveFrame.frameMaxCounter-1];
 
 		//-2 because the last 2 Bytes are the CRC from the request
 		u16ReceiveFrameSelfCalculatedCRC = usMBCRC16(ReceiveFrame.frameField, ReceiveFrame.frameMaxCounter-2);
-
-		//Exception because the calculated and the received CRC value is not the same
 
 		if (u16ReceiveFrameCRC != u16ReceiveFrameSelfCalculatedCRC) {
 			MB_START_RECEIVER;
 			modbus_state = MB_IDLE;
 			return;
-		}*/
+		}
 
 		//If Frame is not addressed to me
 		if (currentSlaveAddress != MB_SLAVE_ADDRESS) {
