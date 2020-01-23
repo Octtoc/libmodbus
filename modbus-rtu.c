@@ -140,6 +140,8 @@ void MB_PORT_Receive_Byte(uint8_t _u8RecByte) {
 	if(modbus_state == MB_IDLE) {
 		modbus_timer_3_5_is_expired = 0;
 		modbus_state = MB_RX;
+		ReceiveFrame.frameIndex = 0;
+		ReceiveFrame.frameMaxCounter = 0;
 	}
 	
 	if(modbus_state == MB_RX) {

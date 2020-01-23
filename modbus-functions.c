@@ -11,7 +11,7 @@
 uint8_t MB_AddExceptionToFrame(mb_exception_t *exception, frame_t *FTransmitFrame) {
 	uint16_t u16CRC = 0;
 	FTransmitFrame->frameField[FTransmitFrame->frameMaxCounter++] = MB_SLAVE_ADDRESS;
-	FTransmitFrame->frameField[FTransmitFrame->frameMaxCounter++] = exception->functionCode;
+	FTransmitFrame->frameField[FTransmitFrame->frameMaxCounter++] = exception->functionCode + 0x80;
 	FTransmitFrame->frameField[FTransmitFrame->frameMaxCounter++] = exception->exceptionCode;
 
 	u16CRC = usMBCRC16(FTransmitFrame->frameField, 3);
