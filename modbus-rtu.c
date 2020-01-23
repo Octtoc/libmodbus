@@ -92,6 +92,9 @@ void MB_Receive() {
 				MB_AddReadCoilToFrame(&coil, &TransmitFrame);
 			} break;
 			case WRITE_SINGLE_COIL: {
+				mb_write_coil_t write_coil;
+				MB_FillWriteCoil(&write_coil, &ReceiveFrame);
+				MB_AddWriteCoilToFrame(&write_coil, &TransmitFrame);
 			} break;
 			case WRITE_SINGLE_REGISTER: {
 			} break;
