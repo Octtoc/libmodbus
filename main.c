@@ -24,7 +24,8 @@
 void UartInit(void);
 void TimerInit(void);
 
-uint16_t mb_registers[40];
+uint8_t coilState[40];
+uint16_t mb_register[40];
 
 int main(void)
 {
@@ -73,14 +74,18 @@ uint8_t MB_PORT_Transmit_Byte(uint8_t u8TrByte) {
 	return 0;
 }
 void MB_PORT_ResponseHoldingRegisters(mb_holding_register_t *holding_register) {
-	uint8_t i = 0;
+	uint8_t i;
 
 	for (i=0; i < holding_register->byte_count; i++) {
-		holding_register->register_value[i] = 0x32;
+		holding_register->register_value[i] = mb_register[i];
 	}
 }
 void MB_PORT_SendReadCoils(mb_coil_t *function_coil) {
-	function_coil->coil_status[0] = 0x02;
+	uint8_t i;
+
+	for (i=0; i < function_coil->byte_count; i++) {
+		function_coil->coil_status[i] = coilState[i];
+	}
 }
 uint8_t MB_PORT_TRANSMIT_BUFFER_FULL() {
 	return (UCSR0A & (1<<TXC0));
