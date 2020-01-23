@@ -26,6 +26,12 @@ struct mb_coil{
 };
 typedef struct mb_coil mb_coil_t;
 
+struct mb_write_coil {
+	uint8_t outputAddress;
+	uint8_t outputValue;
+};
+typedef struct mb_write_coil mb_write_coil_t;
+
 struct mb_holding_register{
 	uint8_t function_code;
 	uint16_t starting_address;

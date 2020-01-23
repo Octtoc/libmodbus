@@ -104,3 +104,11 @@ uint8_t MB_FillHoldingRegister(mb_holding_register_t *holding_register,
 
 	return 0;
 }
+
+uint8_t MB_FillWriteCoil(mb_write_coil_t *function_write_coil, frame_t *FReceiveFrame) {
+
+}
+
+uint8_t MB_AddWriteCoilToFrame(mb_write_coil_t *function_write_coil, frame_t *FTransmitFrame) {
+
+}
