@@ -96,10 +96,12 @@ void MB_Receive() {
 				MB_FillWriteCoil(&write_coil, &ReceiveFrame);
 				MB_AddWriteCoilToFrame(&write_coil, &TransmitFrame);
 			} break;
-			default:
-				MB_START_RECEIVER;
-				modbus_state = MB_IDLE;
-				return;
+			default: {
+				mb_exception_t exception;
+				exception.exceptionCode = ILLEGAL_FUNCTION;
+				exception.functionCode = currentMB_State;
+				MB_AddExceptionToFrame(&exception, &TransmitFrame);
+			}
 
 		}
 		//Start Transmitter Bus and send Data back
