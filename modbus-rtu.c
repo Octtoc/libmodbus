@@ -96,21 +96,15 @@ void MB_Receive() {
 				MB_FillWriteCoil(&write_coil, &ReceiveFrame);
 				MB_AddWriteCoilToFrame(&write_coil, &TransmitFrame);
 			} break;
-			case WRITE_SINGLE_REGISTER: {
-			} break;
-			case WRITE_MULTIPLE_COIL: {
-			} break;
-			case WRITE_MULTIPLE_REGISTER: {
-			} break;
-			case READ_WRITE_REGISTER: {
-			} break;
+			default:
+				MB_START_RECEIVER;
+				modbus_state = MB_IDLE;
+				return;
+
 		}
 		//Start Transmitter Bus and send Data back
 		MB_START_TRANSMITTER;
 		modbus_state = MB_TX;
-
-		ReceiveFrame.frameIndex = 0;
-		ReceiveFrame.frameMaxCounter = 0;
 	}
 }
 
