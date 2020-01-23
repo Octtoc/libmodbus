@@ -41,6 +41,11 @@ int main(void)
 	TimerInit();
 	MB_RTUInit();
 
+	coilState[0] = 0xFF;
+	coilState[1] = 0x10;
+	coilState[2] = 0xB5;
+	coilState[3] = 0x00;
+
 	sei();
 
     while (1)
