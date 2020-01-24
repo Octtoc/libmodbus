@@ -9,14 +9,14 @@
 #define MODBUS_H_
 #include <avr/io.h>
 
-struct frame{
+struct frame {
 	uint8_t frameIndex;
 	uint8_t frameMaxCounter;
 	uint8_t frameField[128];
 };
 typedef struct frame frame_t;
 
-struct mb_coil{
+struct mb_coil {
 	uint8_t function_code;
 	uint16_t starting_address;
 	uint16_t quantity_coils;
@@ -32,7 +32,7 @@ struct mb_write_coil {
 };
 typedef struct mb_write_coil mb_write_coil_t;
 
-struct mb_holding_register{
+struct mb_holding_register {
 	uint8_t function_code;
 	uint16_t starting_address;
 	uint16_t quantity_registers;
