@@ -56,10 +56,11 @@ uint8_t MB_AddHoldingRegisterToFrame(mb_holding_register_t *holding_register,
 }
 
 uint8_t MB_FillReadCoil(mb_coil_t *function_coil, frame_t *FReceiveFrame) {
-	function_coil->starting_address = (FReceiveFrame->frameField[2] << 8)
-			| FReceiveFrame->frameField[3];
-	function_coil->quantity_coils = (FReceiveFrame->frameField[4] << 8)
-			| FReceiveFrame->frameField[5];
+
+	function_coil->starting_address = UINT8_T_TO_UINT16_T(
+			FReceiveFrame->frameField[2], FReceiveFrame->frameField[3]);
+	function_coil->quantity_coils = UINT8_T_TO_UINT16_T(
+			FReceiveFrame->frameField[4], FReceiveFrame->frameField[5]);
 	function_coil->byte_count = function_coil->quantity_coils / 8;
 
 	if ((function_coil->byte_count % 8) > 1) {
@@ -102,12 +103,10 @@ uint8_t MB_FillHoldingRegister(mb_holding_register_t *holding_register,
 		frame_t *FReceiveFrame) {
 	uint16_t u16StartingAddressLeftData = 0;
 	//Activate Function in Main to process Data and receive Transmission Frame
-	holding_register->quantity_registers =
-			((uint16_t) FReceiveFrame->frameField[4] << 8)
-					| FReceiveFrame->frameField[5];
-	holding_register->starting_address =
-			((uint16_t) FReceiveFrame->frameField[2] << 8)
-					| FReceiveFrame->frameField[3];
+	holding_register->quantity_registers = UINT8_T_TO_UINT16_T(
+			FReceiveFrame->frameField[4], FReceiveFrame->frameField[5]);
+	holding_register->starting_address = UINT8_T_TO_UINT16_T(
+			FReceiveFrame->frameField[2], FReceiveFrame->frameField[3]);
 	holding_register->byte_count = holding_register->quantity_registers * 2;
 
 	//ExceptionCode Handling
@@ -130,11 +129,10 @@ uint8_t MB_FillHoldingRegister(mb_holding_register_t *holding_register,
 
 uint8_t MB_FillWriteCoil(mb_write_coil_t *function_write_coil,
 		frame_t *FReceiveFrame) {
-	function_write_coil->outputAddress =
-			((uint16_t) FReceiveFrame->frameField[2] << 8)
-					| FReceiveFrame->frameField[3];
-	function_write_coil->outputValue = ((uint16_t) FReceiveFrame->frameField[4]
-			<< 8) | FReceiveFrame->frameField[5];
+	function_write_coil->outputAddress = UINT8_T_TO_UINT16_T(
+			FReceiveFrame->frameField[2], FReceiveFrame->frameField[3]);
+	function_write_coil->outputValue = UINT8_T_TO_UINT16_T(
+			FReceiveFrame->frameField[4], FReceiveFrame->frameField[5]);
 	return 0;
 }
 

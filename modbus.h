@@ -9,6 +9,8 @@
 #define MODBUS_H_
 #include <avr/io.h>
 
+#define UINT8_T_TO_UINT16_T(ui8_HIGH, ui8_LOW) ( (uint16_t) (ui8_HIGH) << 8) | (ui8_LOW)
+
 struct frame {
 	uint8_t frameIndex;
 	uint8_t frameMaxCounter;

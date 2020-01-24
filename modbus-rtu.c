@@ -52,11 +52,9 @@ void MB_Receive() {
 		modbus_timer_3_5_is_expired = 0;
 
 		//Convert the last 2 CRC Bytes into a 16 Bit value
-		u16ReceiveFrameCRC =
-				((uint16_t) ReceiveFrame.frameField[ReceiveFrame.frameMaxCounter
-						- 1] << 8)
-						| ReceiveFrame.frameField[ReceiveFrame.frameMaxCounter
-								- 2];
+		u16ReceiveFrameCRC = UINT8_T_TO_UINT16_T(
+				ReceiveFrame.frameField[ReceiveFrame.frameMaxCounter - 1],
+				ReceiveFrame.frameField[ReceiveFrame.frameMaxCounter - 2]);
 
 		//-2 because the last 2 Bytes are the CRC from the request
 		u16ReceiveFrameSelfCalculatedCRC = usMBCRC16(ReceiveFrame.frameField,
